@@ -38,6 +38,17 @@
 				<set var="a_u" value="Username({u_name})"/>
 			</effect>
 		</case>
+		
+		<case>
+			<condition>
+				<if var="u_name" relation="!in" value="[Mew, Mike, Ruiqi, Bilge]"/>
+				<if var="u_u" relation="contains" value="{u_name} (name)?"/>
+			</condition>
+			<effect prob="1">
+				<set var="a_u" value="AskRepeat"/>
+			</effect>
+		</case>
+		
 		<case>
 			<condition>
 				<if var="tasks" relation="in" value="[work, study, learn, sleep, play]"/>
@@ -52,6 +63,7 @@
 
 <model trigger="a_u">
 	<rule>
+	
 		<case>
 			<condition>
 				<if var="a_u" relation="=" value="Username({u_name})"/>
@@ -60,6 +72,7 @@
 				<set var="a_m" value="Recognized({u_name})"/>
 			</effect>
 		</case>
+		
 		<case>
 			<condition>
 				<if var="a_u" relation="=" value="Settime({tasks})"/>
@@ -68,11 +81,30 @@
 				<set var="a_m" value="Settimer({tasks})"/>
 			</effect>
 		</case>
+		
+	</rule>
+	
+	<rule id="negative">
+		<case>
+			<effect util="-0.5">
+				<set var="a_m" value="Recognized({u_name})"/>
+			</effect>
+		</case>
+	</rule>
+	
+	<rule id="repeat">
+		<case>
+			<effect util="0.2">
+				<set var="a_m" value="AskRepeat"/>
+			</effect>
+		</case>
+		
 	</rule>
 </model>
 
 <model trigger="a_m">
 	<rule>
+	
 		<case>
 			<condition>
 				<if var="a_m" relation="=" value="Recognized({u_name})"/>
@@ -81,6 +113,7 @@
 				<set var="u_m" value="Nice to meet you, {u_name}. What can I do for you?"/>
 			</effect>
 		</case>
+		
 		<case>
 			<condition>
 				<if var="a_m" relation="=" value="Settimer({tasks})"/>
@@ -89,7 +122,31 @@
 				<set var="u_m" value="Ok, set the timer for the tasks."/>
 			</effect>
 		</case>
+		
+		<case>
+			<condition>
+				<if var="a_m" value="AskRepeat"/>
+			</condition>
+			<effect util="1">
+				<set var="u_m" value="Pardon, what did you say?" />
+			</effect>
+		</case>
+		
 	</rule>
 </model>
+
+	<model trigger="a_m">
+
+		<rule>
+			<case>
+				<condition>
+					<if var="a_m" value="AskRepeat" />
+				</condition>
+				<effect prob="0.95">
+					<set var="a_u^p" value="{a_u}" />
+				</effect>
+			</case>
+		</rule>
+	</model>
 
 </domain>
