@@ -28,7 +28,7 @@
 	</model>-->
 	
 <model trigger="u_u">
-	<rule>
+	<rule id="nameInput">
 		<case>
 			<condition>
 				<if var="u_name" relation="in" value="[Mew, Mike, Ruiqi, Bilge]"/>	<!-- Name array -->
@@ -39,7 +39,7 @@
 			</effect>
 		</case>
 		
-		<case>
+		<!--<case>
 			<condition>
 				<if var="u_name" relation="!in" value="[Mew, Mike, Ruiqi, Bilge]"/>
 				<if var="u_u" relation="contains" value="{u_name} (name)?"/>
@@ -47,7 +47,7 @@
 			<effect prob="1">
 				<set var="a_u" value="AskRepeat"/>
 			</effect>
-		</case>
+		</case>-->
 		
 		<case>
 			<condition>
@@ -62,7 +62,7 @@
 </model>
 
 <model trigger="a_u">
-	<rule>
+	<rule id="name">
 	
 		<case>
 			<condition>
@@ -103,7 +103,7 @@
 </model>
 
 <model trigger="a_m">
-	<rule>
+	<rule id="nameRecognized">
 	
 		<case>
 			<condition>
