@@ -36,7 +36,7 @@
 	
 		<case> <!--Ask for users' name only once-->
 			<condition operator="and">
-				<if var="u_u" relation="contains" value="(I|My)? (am|name)? (|is)? {u_name}"/>
+				<if var="u_u" relation="contains" value="(I|My|Call)? (am|name|me)? (|called|is)? {u_name}"/>
 				<if var="once" relation="=" value="false"/>
 			</condition>
 			<effect prob="1">
