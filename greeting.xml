@@ -7,8 +7,12 @@
         </settings>
 
 	<initialstate>
-	<variable id="u_m">
+	<variable id="u_m"> <!--Machine talks to users.-->
 		<value prob="1">Hello! What is your name?</value>
+	</variable>
+	
+	<variable id="once"> <!-- a flag variable. Run only once.-->
+		<value prob="1">false</value>
 	</variable>
 
 	</initialstate>
@@ -29,26 +33,30 @@
 	
 <model trigger="u_u">
 	<rule id="nameInput">
-		<case>
-			<condition>
-				<if var="u_name" relation="in" value="[Mew, Mike, Ruiqi, Bilge]"/>	<!-- Name array -->
-				<if var="u_u" relation="contains" value="{u_name} (name)?"/>
+	
+		<case> <!--Ask for users' name only once-->
+			<condition operator="and">
+				<if var="u_u" relation="contains" value="(I|My)? (am|name)? (|is)? {u_name}"/>
+				<if var="once" relation="=" value="false"/>
 			</condition>
 			<effect prob="1">
 				<set var="a_u" value="Username({u_name})"/>
+				<set var="once" value="true"/>
 			</effect>
 		</case>
-		
-		<!--<case>
-			<condition>
-				<if var="u_name" relation="!in" value="[Mew, Mike, Ruiqi, Bilge]"/>
-				<if var="u_u" relation="contains" value="{u_name} (name)?"/>
+	
+		<case>
+			<condition operator="and">
+				<if var="u_u" relation="in" value="[Mew, Mike, Ruiqi, Bobby, Wang, Bilge]"/>
+				<if var="u_u" relation="contains" value="{u_name}"/>
+				<if var="once" relation="=" value="false"/>
 			</condition>
 			<effect prob="1">
-				<set var="a_u" value="AskRepeat"/>
+				<set var="a_u" value="Username({u_name})"/>
+				<set var="once" value="true"/>
 			</effect>
-		</case>-->
-		
+		</case>
+				
 		<case>
 			<condition>
 				<if var="tasks" relation="in" value="[work, study, learn, sleep, play]"/>
@@ -58,6 +66,13 @@
 				<set var="a_u" value="Settime({tasks}})"/>
 			</effect>
 		</case>
+		
+		<case id="whoAreYou">
+			<effect prob="1">
+				<set var="a_u" value="AskRepeat"/>
+			</effect>
+		</case>
+		
 	</rule>	
 </model>
 
