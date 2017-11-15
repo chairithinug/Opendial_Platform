@@ -37,22 +37,32 @@
 				
 		<case id="tasks">
 			<condition>
-				<if var="tasks" relation="in" value="[work, study, learn, sleep, play]"/>
+				<if var="tasks" relation="in" value="[work,study,learn,sleep,play,eat, do]"/>
 				<if var="u_u" relation="contains" value="{tasks}"/>
 			</condition>
 			<effect prob="1">
 				<set var="a_u" value="Settime({tasks}})"/>
-				<set var="taskPrev" value="{task}"/>
+				<set var="taskPrev" value="{tasks}"/>
 			</effect>
 		</case>
 		
 		<case id="changeTask">
 			<condition>
-				<if var="u_u" relation="contains" value="change"/>
-				<if var="taskPrev" relation="=" value="{task}"/>
+				<if var="u_u" relation="in" value="[change]"/>
+				<if var="taskPrev" relation="=" value="{tasks}"/>
 			</condition>
 			<effect prob="1">
-				<set var="a_u" value="AskTask"/>
+				<set var="a_u" value="AskTask{tasks}"/>
+			</effect>
+		</case>
+		
+		<case id="AskConfirm">
+			<condition>
+				<if var="u_u" relation="in" value="[Yes,yes,exactly,sure,why not,yeah,yep]"/>
+				<if var="taskPrev" relation="=" value="{tasks}"/>
+			</condition>
+			<effect prob="1">
+				<set var="a_u" value="confirm"/>
 			</effect>
 		</case>
 		
@@ -63,10 +73,11 @@
 		</case>
 		
 	</rule>	
+		
 </model>
 
 <model trigger="a_u">
-	<rule id="name">
+	<rule>
 	
 		<case>
 			<condition>
@@ -79,10 +90,10 @@
 		
 		<case>
 			<condition>
-				<if var="a_u" relation="=" value="AskTask"/>
+				<if var="a_u" relation="=" value="AskTask{tasks}"/>
 			</condition>
 			<effect util="1">
-				<set var="a_m" value="changeTask"/>
+				<set var="a_m" value="changeTask{tasks}"/>
 			</effect>
 		</case>
 		
@@ -92,6 +103,15 @@
 			</condition>
 			<effect util="1">
 				<set var="a_m" value="Settimer({tasks})"/>
+			</effect>
+		</case>
+		
+		<case>
+			<condition>
+				<if var="a_u" relation="=" value="confirm"/>
+			</condition>
+			<effect util="1">
+				<set var="a_m" value="confirm"/>
 			</effect>
 		</case>
 		
@@ -138,10 +158,10 @@
 		
 		<case>
 			<condition>
-				<if var="a_m" relation="=" value="changeTask"/>
+				<if var="a_m" relation="=" value="changeTask{tasks}"/>
 			</condition>
 			<effect util="1">
-				<set var="u_m" value="Do you wan to stop {taskPrev}ing?"/>
+				<set var="u_m" value="Do you want to stop {taskPrev}ing?"/>
 			</effect>
 		</case>
 		
@@ -151,6 +171,15 @@
 			</condition>
 			<effect util="1">
 				<set var="u_m" value="Pardon, what did you say?" />
+			</effect>
+		</case>
+		
+		<case>
+			<condition>
+				<if var="a_m" value="confirm"/>
+			</condition>
+			<effect util="1">
+				<set var="u_m" value="Ok, stop {taskPrev}ing" />
 			</effect>
 		</case>
 		
@@ -164,7 +193,7 @@
 				<condition>
 					<if var="a_m" value="AskRepeat" />
 				</condition>
-				<effect prob="0.95">
+				<effect prob="0.80">
 					<set var="a_u^p" value="{a_u}" />
 				</effect>
 			</case>
