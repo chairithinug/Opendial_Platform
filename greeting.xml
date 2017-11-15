@@ -11,63 +11,52 @@
 		<value prob="1">Hello! What is your name?</value>
 	</variable>
 	
-	<variable id="once"> <!-- a flag variable. Run only once.-->
+	<variable id="runOnlyOnce"> <!-- a flag variable. Run only once.-->
 		<value prob="1">false</value>
+	</variable>
+	
+	<variable id="taskPrev">
+		<value prob="1">nothing</value>
 	</variable>
 
 	</initialstate>
 	
-	<!--<model trigger="u_u">
-	<rule>
-		<case>
-			<condition>
-				<if var="u_name" relation="in" value="[Mew, Mike, Ruiqi, Bilge]"/>
-				<if var="u_u" relation="contains" value="{u_name}"/>
-			</condition>
-			<effect prob="1">
-			<set var="u_m" value="Nice to meet you, {u_name}."/>
-			</effect>
-		</case>
-	</rule>
-	</model>-->
-	
 <model trigger="u_u">
-	<rule id="nameInput">
+	<rule>
 	
-		<case> <!--Ask for users' name only once-->
+		<case id="nameInput"> <!--Ask for users' name only once-->
 			<condition operator="and">
-				<if var="u_u" relation="contains" value="(I|My|Call)? (am|name|me)? (|called|is)? {u_name}"/>
-				<if var="once" relation="=" value="false"/>
+				<if var="u_u" relation="contains" value="(I|My|Call)? (am|name|me)? (|called|is)? {u_name}"/> <!--These are options in the sentence.-->
+				<if var="runOnlyOnce" relation="=" value="false"/>
 			</condition>
 			<effect prob="1">
 				<set var="a_u" value="Username({u_name})"/>
-				<set var="once" value="true"/>
-			</effect>
-		</case>
-	
-		<case>
-			<condition operator="and">
-				<if var="u_u" relation="in" value="[Mew, Mike, Ruiqi, Bobby, Wang, Bilge]"/>
-				<if var="u_u" relation="contains" value="{u_name}"/>
-				<if var="once" relation="=" value="false"/>
-			</condition>
-			<effect prob="1">
-				<set var="a_u" value="Username({u_name})"/>
-				<set var="once" value="true"/>
+				<set var="runOnlyOnce" value="true"/>
 			</effect>
 		</case>
 				
-		<case>
+		<case id="tasks">
 			<condition>
 				<if var="tasks" relation="in" value="[work, study, learn, sleep, play]"/>
 				<if var="u_u" relation="contains" value="{tasks}"/>
 			</condition>
 			<effect prob="1">
 				<set var="a_u" value="Settime({tasks}})"/>
+				<set var="taskPrev" value="{task}"/>
 			</effect>
 		</case>
 		
-		<case id="whoAreYou">
+		<case id="changeTask">
+			<condition>
+				<if var="u_u" relation="contains" value="change"/>
+				<if var="taskPrev" relation="=" value="{task}"/>
+			</condition>
+			<effect prob="1">
+				<set var="a_u" value="AskTask"/>
+			</effect>
+		</case>
+		
+		<case id="AskRepeat">
 			<effect prob="1">
 				<set var="a_u" value="AskRepeat"/>
 			</effect>
@@ -90,6 +79,15 @@
 		
 		<case>
 			<condition>
+				<if var="a_u" relation="=" value="AskTask"/>
+			</condition>
+			<effect util="1">
+				<set var="a_m" value="changeTask"/>
+			</effect>
+		</case>
+		
+		<case>
+			<condition>
 				<if var="a_u" relation="=" value="Settime({tasks})"/>
 			</condition>
 			<effect util="1">
@@ -101,7 +99,7 @@
 	
 	<rule id="negative">
 		<case>
-			<effect util="-0.5">
+			<effect util="-0.7">
 				<set var="a_m" value="Recognized({u_name})"/>
 			</effect>
 		</case>
@@ -118,9 +116,9 @@
 </model>
 
 <model trigger="a_m">
-	<rule id="nameRecognized">
+	<rule>
 	
-		<case>
+		<case id="nameRecognized">
 			<condition>
 				<if var="a_m" relation="=" value="Recognized({u_name})"/>
 			</condition>
@@ -135,6 +133,15 @@
 			</condition>
 			<effect util="1">
 				<set var="u_m" value="Ok, set the timer for the tasks."/>
+			</effect>
+		</case>
+		
+		<case>
+			<condition>
+				<if var="a_m" relation="=" value="changeTask"/>
+			</condition>
+			<effect util="1">
+				<set var="u_m" value="Do you wan to stop {taskPrev}ing?"/>
 			</effect>
 		</case>
 		
