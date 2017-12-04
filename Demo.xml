@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain>
+<!-- 
+******************************IMPORTANT NOTE******************************
+
+1. Still do not understand the difference between util and prob
+so this program does not fully utilize the use of prob and util.
+
+2. Need to look at the better example to develop futher
+
+Version: 1.00 KickStarter
+
+Patch note:
+(12/04/2017) V1.00 KickStarter - Kick start the model for the demo. 
+
+**************************************************************************
+-->
+
+<!--Set up Nuance speech model-->
+	<settings>
+                <modules>opendial.plugins.NuanceSpeech</modules>
+                <id>NMDPTRIAL_chairithinug_wisc_edu20171030172526</id>
+                <key>09e2e4351f5aa7b809f5a8926c385a14b48ace2defd67dd23ff551071b111825f3fd5a125701cb61f773f363ab4d775fd7468dc61c0a985cffe9631bfb7c40ee</key>
+                <lang>eng-USA</lang>
+    </settings>
+<!--initialize the system-->
+	<initialstate>
+
+		<variable id="u_m">
+			<value></value>
+		</variable>		
+		
+		<variable id="current_task">
+			<value></value>
+		</variable>
+		
+	</initialstate>
+<!--start the actual model-->	
+	<model trigger="u_u">
+		<rule id="user_initialize">
+			<case>
+				<condition>
+					<if var="u_u" relation="in" value="[Hello, Hi, Good morning, Good afternoon, Good evening, Hey]"/>
+				</condition>
+				<effect prob="1">
+					<set var="a_u" value="user_greeting"/>
+				</effect>
+			</case>
+		</rule>
+		
+		<rule id="user_command">
+			<case>
+				<condition>
+					<if var="u_u" relation="contains" value="(I|My|Call)? (am|name|me)? (|called|is)? {u_name}"/>
+					<if var="u_u" relation="in" value="[study, sleep, work]"/>
+				</condition>
+				<effect>
+					<set var="next_task" value="{}">
+				</effect>
+			</case>
+		</rule>
+		
+	</model>
+	
+	<model trigger="a_u">
+		<rule id="x">
+			<case>
+				<condition>
+					<if var="a_u" relation="=" value="user_greeting"/>
+				</condition>
+				<effect util="1"> 
+					<set var="a_m" value="machine_greeting"/>
+				</effect>
+			</case>
+		</rule>
+	</model>
+	
+	<model trigger="a_m">
+		<rule id="xx">
+			<case>
+				<condition>
+					<if var="a_m" relation="=" value="machine_greeting"/>
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Hi, I am Bucky. How can I help you?"/>
+				</effect>
+			</case>
+		</rule>
+	</model>
+
+</domain>
