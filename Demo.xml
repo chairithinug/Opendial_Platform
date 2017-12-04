@@ -8,10 +8,11 @@ so this program does not fully utilize the use of prob and util.
 
 2. Need to look at the better example to develop futher
 
-Version: 1.00 KickStarter
+Version: 1.01 KickStarter
 
 Patch note:
-(12/04/2017) V1.00 KickStarter - Kick start the model for the demo. 
+(12/04/2017) V1.00 KickStarter - Kick start the model for the demo (Mew). 
+(12/04/2017) V1.01 Fix some bugs (Mew).
 
 **************************************************************************
 -->
@@ -25,14 +26,14 @@ Patch note:
     </settings>
 <!--initialize the system-->
 	<initialstate>
-
-		<variable id="u_m">
-			<value></value>
-		</variable>		
 		
-		<variable id="current_task">
-			<value></value>
+		<!--<variable id="current_task">
+			<value>nothing</value>
 		</variable>
+		
+		<variable id="next_task">
+			<value>initialize</value>
+		</variable> -->
 		
 	</initialstate>
 <!--start the actual model-->	
@@ -48,17 +49,17 @@ Patch note:
 			</case>
 		</rule>
 		
-		<rule id="user_command">
+		<!--<rule id="user_command">
 			<case>
 				<condition>
-					<if var="u_u" relation="contains" value="(I|My|Call)? (am|name|me)? (|called|is)? {u_name}"/>
-					<if var="u_u" relation="in" value="[study, sleep, work]"/>
+					<if var="task" relation="contains" value="[]"/>
+					<if var="u_u" relation="in" value="{task}"/>
 				</condition>
 				<effect>
-					<set var="next_task" value="{}">
+					<set var="current_task" value="{task}">
 				</effect>
 			</case>
-		</rule>
+		</rule>-->
 		
 	</model>
 	
