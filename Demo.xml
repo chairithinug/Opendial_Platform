@@ -10,9 +10,11 @@ so this program does not fully utilize the use of prob and util.
 
 Version: 1.01 KickStarter
 
-Patch note:
-(12/04/2017) V1.00 KickStarter - Kick start the model for the demo (Mew). 
-(12/04/2017) V1.01 Fix some bugs (Mew).
+Patch note/Issues:
+(12/04/2017 12PM) V1.00 KickStarter - Kick start the model for the demo (Mew). 
+(12/04/2017 5PM) V1.01 Fix some bugs (Mew).
+(12/04/2017 9PM) V1.02 Implement the use of FSM (current_state, next_state) which prevents the code to jump around whenever the specified input is asserted.
+Almost everything seems fine, but when you are asked if you want to do the task, if you say yes, the program will not show the expected result (Okay, start {task}ing!) (Mew).
 
 **************************************************************************
 -->
@@ -27,44 +29,79 @@ Patch note:
 <!--initialize the system-->
 	<initialstate>
 		
-		<!--<variable id="current_task">
-			<value>nothing</value>
+		<variable id="current_state">
+			<value>nada</value>
 		</variable>
 		
-		<variable id="next_task">
+		<variable id="next_state">
 			<value>initialize</value>
-		</variable> -->
+		</variable>
 		
 	</initialstate>
 <!--start the actual model-->	
 	<model trigger="u_u">
 		<rule id="user_initialize">
 			<case>
-				<condition>
+				<condition operator="and">
 					<if var="u_u" relation="in" value="[Hello, Hi, Good morning, Good afternoon, Good evening, Hey]"/>
+					<if var="next_state" relation="=" value="initialize"/>
 				</condition>
 				<effect prob="1">
 					<set var="a_u" value="user_greeting"/>
+					<set var="current_state" value="initialize"/>
+					<set var="next_state" value="idle"/>
 				</effect>
 			</case>
 		</rule>
 		
-		<!--<rule id="user_command">
-			<case>
-				<condition>
-					<if var="task" relation="contains" value="[]"/>
-					<if var="u_u" relation="in" value="{task}"/>
+		<rule id="user_command">
+			<case id="task">
+				<condition operator="and">
+					<if var="task" relation="in" value="[sleep, work, study, go to]"/>
+					<if var="u_u" relation="contains" value="(I)? (have to|must|want|need|would like to|will)? {task}"/>
+					<if var="next_state" relation="=" value="idle"/>
 				</condition>
 				<effect>
-					<set var="current_task" value="{task}">
+					<set var="a_u" value="user_order({task})"/>
+					<set var="current_state" value="idle"/>
+					<set var="next_state" value="confirm_task"/>
 				</effect>
 			</case>
-		</rule>-->
+			
+		</rule>
+		
+		<rule id="user_verification">
+			<case id="positive">
+				<condition operator="and">
+					<if var="yes_no" relation="in" value="[yes, yeah, sure, of course]"/>
+					<if var="u_u" relation="contains" value="{yes_no}"/>
+					<if var="next_state" relation="=" value="confirm_task"/>
+				</condition>
+				<effect>
+					<set var="a_u" value="user_yes_no({yes_no})"/>
+					<set var="current_state" value="confirm_task"/>
+					<set var="next_state" value="perform({task})"/>									
+				</effect>
+			</case>
+			
+			<case id="negative">
+				<condition operator="and">
+					<if var="yes_no" relation="in" value="[no, nah, of course not, nope]"/>
+					<if var="u_u" relation="contains" value="{yes_no}"/>
+					<if var="next_state" relation="=" value="confirm_task"/>
+				</condition>
+				<effect>
+					<set var="a_u" value="user_yes_no({yes_no})"/>
+					<set var="current_state" value="confirm_task"/>
+					<set var="next_state" value="idle"/>	
+				</effect>
+			</case>			
+		</rule>		
 		
 	</model>
 	
 	<model trigger="a_u">
-		<rule id="x">
+		<rule id="user_initialize">
 			<case>
 				<condition>
 					<if var="a_u" relation="=" value="user_greeting"/>
@@ -74,10 +111,45 @@ Patch note:
 				</effect>
 			</case>
 		</rule>
+		
+		<rule id="user_command">
+			<case>
+				<condition>
+					<if var="a_u" relation="=" value="user_order({task})"/>
+				</condition>
+				<effect util="1"> 
+					<set var="a_m" value="machine_follow_order({task})"/>
+				</effect>
+			</case>
+		</rule>
+		
+		<rule id="user_verification">
+			<case id="positive">
+				<condition operator="and">
+					<if var="a_u" relation="=" value="user_yes_no({yes_no})"/>
+					<if var="next_state" relation="=" value="perform({task})"/>
+				</condition>
+				<effect util="1"> 
+					<set var="a_m" value="machine_perform_task({task})"/>
+					<set var="current_state" value="perform({task})"/>
+				</effect>
+			</case>
+			
+			<case id="negative">
+				<condition operator="and">
+					<if var="a_u" relation="=" value="user_yes_no({yes_no})"/>
+					<if var="next_state" relation="=" value="idle"/>
+				</condition>
+				<effect util="1"> 
+					<set var="a_m" value="machine_idle"/>
+					<set var="current_state" value="idle"/>
+				</effect>
+			</case>			
+		</rule>		
 	</model>
 	
 	<model trigger="a_m">
-		<rule id="xx">
+		<rule id="user_initialize">
 			<case>
 				<condition>
 					<if var="a_m" relation="=" value="machine_greeting"/>
@@ -87,6 +159,37 @@ Patch note:
 				</effect>
 			</case>
 		</rule>
+		
+		<rule id="user_command">
+			<case>
+				<condition>
+					<if var="a_m" relation="=" value="machine_follow_order({task})"/>
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Are you sure you want to {task}?"/>
+				</effect>
+			</case>
+		</rule>
+
+		<rule id="user_verification">
+			<case>
+				<condition>
+					<if var="a_m" relation="=" value="machine_perform_task({task})"/>
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Okay, start {task}ing!"/> <!--we can change here to be something else. This is where machine starts working whatever tasks-->
+				</effect>
+			</case>
+			
+			<case>
+				<condition>
+					<if var="a_m" relation="=" value="machine_idle"/>
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="What can I do for you?"/> <!--we can change here to be something else. This is where machine starts working whatever tasks-->
+				</effect>
+			</case>
+		</rule>		
 	</model>
 
 </domain>
