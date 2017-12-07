@@ -8,100 +8,103 @@ so this program does not fully utilize the use of prob and util.
 
 2. Need to look at the better example to develop futher
 
-Version: 1.01 KickStarter
+Version: 1.03 KickStarter
 
 Patch note/Issues:
-(12/04/2017 12PM) V1.00 KickStarter - Kick start the model for the demo (Mew). 
-(12/04/2017 5PM) V1.01 Fix some bugs (Mew).
+(12/07/2017 3PM) V1.04 Fix FSM (remove next_state) and remove yes_no. Add goodbye and add repeat if prob lower than 0.2. (Trying to add function when user says something else)
+(12/06/2017 12PM) V1.03 Attach NAO module for the demo and which will be tested before the demo.
 (12/04/2017 9PM) V1.02 Implement the use of FSM (current_state, next_state) which prevents the code to jump around whenever the specified input is asserted.
 Almost everything seems fine, but when you are asked if you want to do the task, if you say yes, the program will not show the expected result (Okay, start {task}ing!) (Mew).
+(12/04/2017 5PM) V1.01 Fix some bugs (Mew).
+(12/04/2017 12PM) V1.00 KickStarter - Kick start the model for the demo (Mew). 
 
 **************************************************************************
 -->
 
 <!--Set up Nuance speech model-->
 	<settings>
-                <modules>opendial.plugins.NuanceSpeech</modules>
-                <id>NMDPTRIAL_chairithinug_wisc_edu20171030172526</id>
-                <key>09e2e4351f5aa7b809f5a8926c385a14b48ace2defd67dd23ff551071b111825f3fd5a125701cb61f773f363ab4d775fd7468dc61c0a985cffe9631bfb7c40ee</key>
-                <lang>eng-USA</lang>
+        <modules>opendial.plugins.NuanceSpeech</modules>
+        <id>NMDPTRIAL_chairithinug_wisc_edu20171030172526</id>
+        <key>09e2e4351f5aa7b809f5a8926c385a14b48ace2defd67dd23ff551071b111825f3fd5a125701cb61f773f363ab4d775fd7468dc61c0a985cffe9631bfb7c40ee</key>
+        <lang>eng-USA</lang>
+
+		<!--<modules>opendial.plugins.NaoASR,opendial.plugins.NaoBehaviour,opendial.plugins.NaoButton,opendial.plugins.NaoPerception,opendial.plugins.NaoTTS</modules>
+		<nao_ip>add here the IP address of your robot</nao_ip>
+		<grammar>add here the path to the BNF recognition grammar</secret>-->				
+				
     </settings>
 <!--initialize the system-->
 	<initialstate>
 		
 		<variable id="current_state">
-			<value>nada</value>
-		</variable>
-		
-		<variable id="next_state">
-			<value>initialize</value>
+			<value>None</value>
 		</variable>
 		
 	</initialstate>
 <!--start the actual model-->	
 	<model trigger="u_u">
-		<rule id="user_initialize">
+		<rule id="initialize">
 			<case>
 				<condition operator="and">
 					<if var="u_u" relation="in" value="[Hello, Hi, Good morning, Good afternoon, Good evening, Hey]"/>
-					<if var="next_state" relation="=" value="initialize"/>
+					<if var="current_state" relation="=" value="None"/>
 				</condition>
 				<effect prob="1">
 					<set var="a_u" value="user_greeting"/>
-					<set var="current_state" value="initialize"/>
-					<set var="next_state" value="idle"/>
 				</effect>
 			</case>
 		</rule>
 		
-		<rule id="user_command">
+		<rule id="command">
 			<case id="task">
 				<condition operator="and">
 					<if var="task" relation="in" value="[sleep, work, study, go to]"/>
 					<if var="u_u" relation="contains" value="(I)? (have to|must|want|need|would like to|will)? {task}"/>
-					<if var="next_state" relation="=" value="idle"/>
+					<if var="current_state" relation="=" value="initialized"/>
 				</condition>
-				<effect>
+				<effect prob="1">
 					<set var="a_u" value="user_order({task})"/>
-					<set var="current_state" value="idle"/>
-					<set var="next_state" value="confirm_task"/>
 				</effect>
 			</case>
 			
+			<case id="stop">
+				<condition operator="and">
+					<if var="stop" relation="in" value="[stop, quit, break, exit]"/>
+					<if var="u_u" relation="contains" value="{stop}"/>
+					<if var="current_state" relation="=" value="tasking({task})"/>
+				</condition>
+				<effect prob="1">
+					<set var="a_u" value="user_stop({task})"/>
+				</effect>
+			</case>
+		</rule>	
+		
+		<rule id="goodbye">
+			<case>
+				<condition>
+					<if var="u_u" relation="in" value="[Bye, Goodbye, See you, leaving]"/>
+				</condition>
+				<effect prob="1">
+					<set var="a_u" value="user_goodbye"/>
+				</effect>
+			</case>
 		</rule>
 		
-		<rule id="user_verification">
-			<case id="positive">
-				<condition operator="and">
-					<if var="yes_no" relation="in" value="[yes, yeah, sure, of course]"/>
-					<if var="u_u" relation="contains" value="{yes_no}"/>
-					<if var="next_state" relation="=" value="confirm_task"/>
+		<!--<rule id="other" priority="1">
+			<case>
+			<condition>
+					<if var="u_u" relation="!=" value="None"/>
 				</condition>
 				<effect>
-					<set var="a_u" value="user_yes_no({yes_no})"/>
-					<set var="current_state" value="confirm_task"/>
-					<set var="next_state" value="perform({task})"/>									
+					<set var="a_u" value="Other"/>
 				</effect>
 			</case>
+		</rule>-->
 			
-			<case id="negative">
-				<condition operator="and">
-					<if var="yes_no" relation="in" value="[no, nah, of course not, nope]"/>
-					<if var="u_u" relation="contains" value="{yes_no}"/>
-					<if var="next_state" relation="=" value="confirm_task"/>
-				</condition>
-				<effect>
-					<set var="a_u" value="user_yes_no({yes_no})"/>
-					<set var="current_state" value="confirm_task"/>
-					<set var="next_state" value="idle"/>	
-				</effect>
-			</case>			
-		</rule>		
-		
 	</model>
 	
 	<model trigger="a_u">
-		<rule id="user_initialize">
+		<rule id="initialize">
 			<case>
 				<condition>
 					<if var="a_u" relation="=" value="user_greeting"/>
@@ -112,8 +115,17 @@ Almost everything seems fine, but when you are asked if you want to do the task,
 			</case>
 		</rule>
 		
-		<rule id="user_command">
-			<case>
+		<rule id="command">
+			<case id="stop" priority="1">
+				<condition>
+					<if var="a_u" relation="=" value="user_stop({task})"/>
+				</condition>
+				<effect util="1"> 
+					<set var="a_m" value="machine_stop({task})"/>
+				</effect>
+			</case>
+			
+			<case id="task">
 				<condition>
 					<if var="a_u" relation="=" value="user_order({task})"/>
 				</condition>
@@ -123,73 +135,129 @@ Almost everything seems fine, but when you are asked if you want to do the task,
 			</case>
 		</rule>
 		
-		<rule id="user_verification">
-			<case id="positive">
-				<condition operator="and">
-					<if var="a_u" relation="=" value="user_yes_no({yes_no})"/>
-					<if var="next_state" relation="=" value="perform({task})"/>
+		<rule id="user_goodbye">
+			<case>
+				<condition>
+					<if var="a_u" relation="=" value="user_goodbye"/>
 				</condition>
 				<effect util="1"> 
-					<set var="a_m" value="machine_perform_task({task})"/>
-					<set var="current_state" value="perform({task})"/>
+					<set var="a_m" value="machine_goodbye"/>
 				</effect>
 			</case>
-			
-			<case id="negative">
-				<condition operator="and">
-					<if var="a_u" relation="=" value="user_yes_no({yes_no})"/>
-					<if var="next_state" relation="=" value="idle"/>
-				</condition>
-				<effect util="1"> 
-					<set var="a_m" value="machine_idle"/>
-					<set var="current_state" value="idle"/>
+		</rule>
+
+		<!--<rule id ="threshold">
+			<case>
+				<effect util="-0.5">
+					<set var="a_m" value="{a_m}"/>
 				</effect>
-			</case>			
-		</rule>		
+			</case>
+		</rule>-->
+		
+		<!--<rule id="other" priority="1">
+			<case>
+			<condition>
+					<if var="a_u" relation="=" value="Other"/>
+				</condition>
+				<effect>
+					<set var="a_m" value="Other"/>
+				</effect>
+			</case>
+		</rule>-->			
+		
+		<rule id="repeat">
+			<case>
+				<effect util="0.2">
+					<set var="a_m" value="AskRepeat" />
+				</effect>
+			</case>
+		</rule>	
+		
 	</model>
 	
 	<model trigger="a_m">
-		<rule id="user_initialize">
+		<rule id="initialize">
 			<case>
 				<condition>
 					<if var="a_m" relation="=" value="machine_greeting"/>
 				</condition>
 				<effect util="1">
 					<set var="u_m" value="Hi, I am Bucky. How can I help you?"/>
+					<set var="current_state" value="initialized"/>
 				</effect>
 			</case>
 		</rule>
 		
-		<rule id="user_command">
-			<case>
+		<rule id="command">
+		
+			<case id="stop" priority="1">
+				<condition>
+					<if var="a_m" relation="=" value="machine_stop({task})"/>
+				</condition>
+				<effect util="1">
+					<set var="u_m" value="Stop {task}ing!"/>
+					<set var="current_state" value="initialized"/>
+				</effect>
+			</case>
+			
+			<case id="task">
 				<condition>
 					<if var="a_m" relation="=" value="machine_follow_order({task})"/>
 				</condition>
 				<effect util="1">
-					<set var="u_m" value="Are you sure you want to {task}?"/>
+					<set var="u_m" value="Okay, start {task}ing!"/>
+					<set var="current_state" value="tasking({task})"/>
 				</effect>
 			</case>
 		</rule>
 
-		<rule id="user_verification">
+		<rule id="goodbye">
 			<case>
 				<condition>
-					<if var="a_m" relation="=" value="machine_perform_task({task})"/>
+					<if var="a_m" relation="=" value="machine_goodbye"/>
 				</condition>
 				<effect util="1">
-					<set var="u_m" value="Okay, start {task}ing!"/> <!--we can change here to be something else. This is where machine starts working whatever tasks-->
+					<set var="u_m" value="Goodbye, see you again!"/>
+					<set var="current_state" value="None"/>
 				</effect>
 			</case>
-			
+		</rule>
+		
+		<rule id="repeat">
 			<case>
 				<condition>
-					<if var="a_m" relation="=" value="machine_idle"/>
+					<if var="a_m" value="AskRepeat" />
 				</condition>
 				<effect util="1">
-					<set var="u_m" value="What can I do for you?"/> <!--we can change here to be something else. This is where machine starts working whatever tasks-->
+					<set var="u_m" value="Sorry, could you repeat?" />
 				</effect>
 			</case>
-		</rule>		
+		</rule>
+		
+		<rule id="prediction">
+			<case>
+				<condition>
+					<if var="a_m" value="AskRepeat" />
+				</condition>
+				<effect prob="0.90">
+					<set var="a_u^p" value="{a_u}" />
+				</effect>
+			</case>
+		</rule>
+		
+		<!--<rule id="other" priority="1">
+			<case>
+			<condition>
+					<if var="a_m" relation="=" value="Other"/>
+				</condition>
+				<effect>
+					<set var="u_m" value="I do not understand what you say."/>
+				</effect>
+			</case>
+		</rule>-->
+		
 	</model>
+	
+	
 
 </domain>
