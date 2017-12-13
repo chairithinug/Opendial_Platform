@@ -8,17 +8,30 @@ so this program does not fully utilize the use of prob and util.
 
 2. Need to look at the better example to develop futher
 
-Version: 1.03 KickStarter
+Version: 1.05 FSMWORKS!
 
 Patch note/Issues:
-(12/07/2017 3PM) V1.04 Fix FSM (remove next_state) and remove yes_no. Add goodbye and add repeat if prob lower than 0.2. (Trying to add function when user says something else)
+(12/07/2017 3PM) V1.05 Add How-to-use note.
+(12/07/2017 3PM) V1.04 Fix FSM (remove next_state) and remove yes/no. Add goodbye and add repeat if prob lower than 0.2. (Trying to add function when user says something else)
 (12/06/2017 12PM) V1.03 Attach NAO module for the demo and which will be tested before the demo.
 (12/04/2017 9PM) V1.02 Implement the use of FSM (current_state, next_state) which prevents the code to jump around whenever the specified input is asserted.
-Almost everything seems fine, but when you are asked if you want to do the task, if you say yes, the program will not show the expected result (Okay, start {task}ing!) (Mew).
-(12/04/2017 5PM) V1.01 Fix some bugs (Mew).
-(12/04/2017 12PM) V1.00 KickStarter - Kick start the model for the demo (Mew). 
+Almost everything seems fine, but when you are asked if you want to do the task, if you say yes, the program will not show the expected result (Okay, start {task}ing!).
+(12/04/2017 5PM) V1.01 Fix some bugs.
+(12/04/2017 12PM) V1.00 KickStarter - Kick start the model for the demo. 
 
 **************************************************************************
+
+********************************HOW TO USE********************************
+
+Whenever you say hi to the system, it will greet you and ask what you want to do. Currently the options are study, work, sleep.
+This program also applies probability rule. Any input with probability lower than 0.2 will not be run. The system will ask user to repeat while also predict that the user will input
+the same input. In order for the system to work according to the specified input, you need to be in that specific state, i.e. the system will not keep jumping around randomly when
+the input is asserted.
+
+You can say hi, start tasks, stop, and say goodbye.
+
+**************************************************************************
+
 -->
 
 <!--Set up Nuance speech model-->
@@ -27,6 +40,8 @@ Almost everything seems fine, but when you are asked if you want to do the task,
         <id>NMDPTRIAL_chairithinug_wisc_edu20171030172526</id>
         <key>09e2e4351f5aa7b809f5a8926c385a14b48ace2defd67dd23ff551071b111825f3fd5a125701cb61f773f363ab4d775fd7468dc61c0a985cffe9631bfb7c40ee</key>
         <lang>eng-USA</lang>
+		
+		
 
 		<!--<modules>opendial.plugins.NaoASR,opendial.plugins.NaoBehaviour,opendial.plugins.NaoButton,opendial.plugins.NaoPerception,opendial.plugins.NaoTTS</modules>
 		<nao_ip>add here the IP address of your robot</nao_ip>
@@ -58,7 +73,7 @@ Almost everything seems fine, but when you are asked if you want to do the task,
 		<rule id="command">
 			<case id="task">
 				<condition operator="and">
-					<if var="task" relation="in" value="[sleep, work, study, go to]"/>
+					<if var="task" relation="in" value="[sleep, work, study]"/>
 					<if var="u_u" relation="contains" value="(I)? (have to|must|want|need|would like to|will)? {task}"/>
 					<if var="current_state" relation="=" value="initialized"/>
 				</condition>
@@ -252,6 +267,14 @@ Almost everything seems fine, but when you are asked if you want to do the task,
 				</condition>
 				<effect>
 					<set var="u_m" value="I do not understand what you say."/>
+				</effect>
+			</case>
+		</rule>-->
+		
+		<!--<rule>
+			<case>
+				<effect>
+					<set var="a_u-history" value="{a_u-history}+{a_u}"/>
 				</effect>
 			</case>
 		</rule>-->
