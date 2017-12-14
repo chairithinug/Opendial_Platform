@@ -48,6 +48,11 @@ You can say hi, start tasks, stop, and say goodbye.
 		<grammar>add here the path to the BNF recognition grammar</secret>-->				
 				
     </settings>
+	
+	<settings>
+		
+	</settings>
+	
 <!--initialize the system-->
 	<initialstate>
 		
@@ -196,8 +201,18 @@ You can say hi, start tasks, stop, and say goodbye.
 				<condition>
 					<if var="a_m" relation="=" value="machine_greeting"/>
 				</condition>
-				<effect util="1">
+				<effect util="0.5">
 					<set var="u_m" value="Hi, I am Bucky. How can I help you?"/>
+					<set var="current_state" value="initialized"/>
+				</effect>					
+			</case>
+			
+			<case>
+				<condition>
+					<if var="a_m" relation="=" value="machine_greeting"/>
+				</condition>
+				<effect util="0.5">
+					<set var="u_m" value="Hello!"/>
 					<set var="current_state" value="initialized"/>
 				</effect>
 			</case>
